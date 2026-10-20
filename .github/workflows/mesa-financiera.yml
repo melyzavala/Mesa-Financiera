@@ -34,10 +34,15 @@ jobs:
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
+      HABILITAR_MODO_REAL: ${{ vars.HABILITAR_MODO_REAL || '1' }}
+      MAX_ANALISIS_POR_RUN: ${{ vars.MAX_ANALISIS_POR_RUN || '3' }}
+      COOLDOWN_SEGUNDOS: ${{ vars.COOLDOWN_SEGUNDOS || '60' }}
       MODO_SIMULACION: ${{ inputs.simulacion && '1' || '0' }}
       TICKER: ${{ inputs.ticker }}  # se pasa como variable, nunca se pega dentro del comando
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"

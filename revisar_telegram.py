@@ -16,6 +16,9 @@ def main():
         # Copia de la plantilla sin Secrets: terminar en verde, sin correos de error cada 15 minutos.
         print("ℹ️ Sin TELEGRAM_BOT_TOKEN: nada que revisar. Agrega tus Secrets para activar el bot.")
         return
+    if not config.TELEGRAM_CHAT_ID:
+        print("🔒 Sin TELEGRAM_CHAT_ID: revisión cancelada para no aceptar chats desconocidos.")
+        return
     try:
         print(f"Bot: @{verificar_bot()}")
     except RuntimeError as error:

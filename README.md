@@ -44,7 +44,7 @@ Las instrucciones paso a paso están en [`docs/`](docs/): Guía del estudiante y
 ## Empezar en 1 minuto, sin llaves
 ```bash
 pip install -r requirements.txt pytest
-pytest -q                               # 27 passed
+pytest -q                               # 36 passed
 python analizar.py AAPL --simulacion    # la cadena completa con datos ficticios
 ```
 
@@ -68,5 +68,17 @@ cp .env.example .env                                   # abre .env y pega tus ll
 Dónde guardarlas, según la ruta: **Colab** → panel 🔑 · **Actions** → Settings → Secrets and variables → Actions ·
 **Codespaces** → tu perfil → Settings → Codespaces → Codespaces secrets · **Tu computadora** → archivo `.env`.
 Nunca las escribas en el código ni las subas a GitHub.
+
+## Seguridad y control de consumo
+
+- El bot se cierra si falta `TELEGRAM_CHAT_ID`; no acepta chats desconocidos por defecto.
+- Telegram acepta únicamente el formato exacto `/analiza TICKER`.
+- Iris trata la respuesta MCP como datos no confiables, limita las herramientas previstas y valida la ficha antes de entregarla a Euler.
+- Cada ejecución procesa como máximo 3 análisis. Un ticker repetido espera 60 segundos dentro del mismo proceso.
+- `HABILITAR_MODO_REAL=0` funciona como interruptor de emergencia, aunque las llaves estén configuradas.
+- La protección completa y sus límites están en [`SEGURIDAD.md`](SEGURIDAD.md).
+
+Para GitHub Actions puedes definir `HABILITAR_MODO_REAL`, `MAX_ANALISIS_POR_RUN` y
+`COOLDOWN_SEGUNDOS` en **Settings → Secrets and variables → Actions → Variables**.
 
 > Material educativo. Las notas que generan los agentes **no son recomendaciones de inversión**.
