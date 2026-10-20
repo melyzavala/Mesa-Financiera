@@ -36,13 +36,13 @@ def pipeline(ticker, avisar=print, guardar=True):
         avisar("📦 Entrega 1→2 · Iris → Euler (ficha):\n" + json.dumps(ficha, ensure_ascii=False, indent=1)[:1500]
                + f"\n🔧 Herramientas MCP usadas: {', '.join(herramientas) or 'ninguna'}")
 
-    avisar("🧮 Euler · Analista calculando e interpretando…")
+    avisar("🧮 Euler · Analista Financiero calculando e interpretando…")
     analisis = agente_analista(ficha)
     if config.MODO_CLASE:
         avisar("📦 Entrega 2→3 · Euler → Vera (indicadores):\n"
                + json.dumps(analisis["indicadores"], ensure_ascii=False, indent=1))
 
-    avisar("✍️ Vera · Comunicadora redactando la nota…")
+    avisar("✍️ Vera · Editora Financiera jerarquizando y redactando…")
     nota = agente_comunicador(analisis)
 
     resultado = {

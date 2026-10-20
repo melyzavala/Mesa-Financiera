@@ -8,8 +8,8 @@ Tú das la orden desde **Telegram**, **Batuta** (el orquestador) dirige y tres e
 | Agente | Personalidad | Qué hace |
 |---|---|---|
 | **Iris** · La Recolectora | Curiosa y meticulosa; jamás inventa un dato | Consulta datos reales de Alpha Vantage por MCP |
-| **Euler** · El Analista | Riguroso con los números | Python calcula; OpenAI interpreta |
-| **Vera** · La Comunicadora | Clara, breve y honesta | Redacta la nota final para Telegram |
+| **Euler** · El Analista Financiero | Prudente, analítico y metodológicamente estricto | Interpreta precio, riesgo y valuación sin recalcular cifras |
+| **Vera** · La Editora Financiera | Clara, selectiva y serena | Jerarquiza el hallazgo y redacta la nota final para Telegram |
 
 ```
 Tú en Telegram: /analiza AAPL
@@ -18,8 +18,8 @@ Tú en Telegram: /analiza AAPL
  Batuta · Orquestador (mesa/pipeline.py)
         │
         ├─► Iris  · Recolectora ── consulta Alpha Vantage por MCP ──► ficha JSON
-        ├─► Euler · Analista ───── Python calcula, OpenAI interpreta ─► análisis JSON
-        └─► Vera  · Comunicadora ─ redacta la nota ───────────────────► mensaje en Telegram
+        ├─► Euler · Analista Financiero ─ Python calcula, OpenAI interpreta ─► análisis JSON
+        └─► Vera  · Editora Financiera ─ jerarquiza y redacta ───────────────► mensaje en Telegram
 ```
 
 ## Paso cero: crea tu propia copia
@@ -44,7 +44,7 @@ Las instrucciones paso a paso están en [`docs/`](docs/): Guía del estudiante y
 ## Empezar en 1 minuto, sin llaves
 ```bash
 pip install -r requirements.txt pytest
-pytest -q                               # 20 passed
+pytest -q                               # 27 passed
 python analizar.py AAPL --simulacion    # la cadena completa con datos ficticios
 ```
 

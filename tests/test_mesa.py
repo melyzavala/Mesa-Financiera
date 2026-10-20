@@ -19,7 +19,20 @@ def simulacion(monkeypatch, tmp_path):
 def test_formula_posicion_rango_52_semanas():
     ind = agentes.calcular_indicadores({"precio": "250.5", "max_52s": "300", "min_52s": "200", "beta": "0.7"})
     assert ind["posicion_rango_52s_pct"] == 50.5          # (250.5-200)/(300-200)*100
+    assert ind["distancia_max_52s_pct"] == -16.5
+    assert ind["avance_desde_min_52s_pct"] == 25.2
+    assert ind["recuperacion_hasta_max_52s_pct"] == 19.8
+    assert ind["zona_rango_52s"] == "zona media"
     assert ind["semaforo_beta"].startswith("🟢")
+
+
+@pytest.mark.parametrize("precio, zona", [
+    (110, "cerca del mínimo"), (130, "zona baja"), (150, "zona media"),
+    (170, "zona alta"), (190, "cerca del máximo"),
+])
+def test_clasificacion_del_rango_52_semanas(precio, zona):
+    ind = agentes.calcular_indicadores({"precio": precio, "min_52s": 100, "max_52s": 200})
+    assert ind["zona_rango_52s"] == zona
 
 
 @pytest.mark.parametrize("beta, color", [(0.5, "🟢"), (0.8, "🟡"), (1.2, "🟡"), (1.3, "🔴"), (None, "⚪")])
@@ -81,8 +94,9 @@ def test_agentes_reales_encadenan_con_openai_simulado(monkeypatch):
         if "Analista" in system:
             datos = json.loads(mensaje)
             assert datos["indicadores"]["posicion_rango_52s_pct"] == 50.5   # recibió la entrega 1
-            return '{"lectura_precio":"a","lectura_riesgo":"b","lectura_valuacion":"c","pregunta_para_investigar":"d"}', []
-        assert '"lectura_precio": "a"' in mensaje                           # recibió la entrega 2
+            return ('{"hallazgo_principal":"a","lectura_riesgo":"b","lectura_valuacion":"c",'
+                    '"dato_pendiente":"d","pregunta_para_investigar":"e"}'), []
+        assert '"hallazgo_principal": "a"' in mensaje                       # recibió la entrega 2
         return "IBM: nota sin descargo", []
 
     monkeypatch.setattr(agentes, "llamar_openai", openai_falso)
@@ -139,3 +153,27 @@ def test_los_agentes_se_presentan_con_su_nombre():
     for nombre in ("Batuta", "Iris", "Euler", "Vera"):
         assert nombre in texto
     assert r["entrega_3_nota"].startswith(agentes.FIRMA_VERA)
+
+
+def test_nota_financiera_simulada_es_trazable_y_no_recomienda():
+    r = pl.pipeline("AAPL", avisar=lambda t: None)
+    nota = r["entrega_3_nota"]
+    for texto in ("Hallazgo principal", "Contexto de 52 semanas", "Perfil y valuación",
+                  "Capitalización", "Fuente: simulación local", "+1.20 %"):
+        assert texto in nota
+    assert "Alpha Vantage vía MCP" not in nota
+    assert len(nota) <= 1300
+
+
+def test_falla_mcp_no_gasta_en_euler_ni_vera(monkeypatch):
+    monkeypatch.setattr(config, "MODO_SIMULACION", False)
+    llamadas = []
+
+    def openai_falso(*args, **kwargs):
+        llamadas.append(kwargs.get("usar_mcp", False))
+        raise ConnectionError("sin red")
+
+    monkeypatch.setattr(agentes, "llamar_openai", openai_falso)
+    r = pl.pipeline("AAPL", avisar=lambda t: None)
+    assert llamadas == [True]
+    assert "Fuente: simulación local" in r["entrega_3_nota"]
