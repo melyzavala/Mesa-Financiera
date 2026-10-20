@@ -23,7 +23,7 @@ Usa siempre estos nombres (Batuta, Iris, Euler, Vera) al explicar el sistema: co
 3. El modo real gasta cuota (Alpha Vantage gratuito: 25 consultas al día) y saldo de la API de OpenAI.
    **Pregunta antes** de ejecutar sin `--simulacion` más de una vez.
 4. No cambies la regla de oro: los cálculos se hacen en Python (`calcular_indicadores`), no en el prompt.
-5. Toda nota final debe terminar con: "No constituye una recomendación de inversión."
+5. Toda nota final debe terminar con: "Nota educativa, no es recomendación de inversión."
 6. Una sesión no confirma tendencia; beta no equivale a riesgo total; P/E requiere comparables.
 7. La capitalización describe tamaño, no seguridad, calidad ni rentabilidad.
 8. No mezcles datos reales y simulados ni atribuyas datos simulados a Alpha Vantage.

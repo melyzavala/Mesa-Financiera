@@ -11,7 +11,7 @@ import json
 
 from . import config
 
-DESCARGO = "No constituye una recomendación de inversión."
+DESCARGO = "Nota educativa, no es recomendación de inversión."
 FIRMA_VERA = "✍️ Vera | Mesa Financiera"
 
 # ----------------------------------------------------------------------
@@ -182,8 +182,8 @@ Reglas:
 - La capitalización describe tamaño; no demuestra seguridad, calidad ni rentabilidad.
 - No infieras causalidad ni uses lenguaje de compra, venta u oportunidad.
 - Si faltan datos, declara la limitación y usa exclusivamente la información recibida.
-El hallazgo principal debe explicar la situación en una o dos frases, combinar el movimiento de la última
-sesión con el contexto de 52 semanas, ser verificable y no repetir la beta ni el P/E.
+El hallazgo principal debe explicar la posición dentro del rango de 52 semanas en una o dos frases,
+ser verificable y no repetir el cambio de la sesión, la beta ni el P/E.
 Responde SOLO con JSON con las claves:
   hallazgo_principal, lectura_riesgo, lectura_valuacion,
   dato_pendiente, pregunta_para_investigar"""
@@ -196,28 +196,23 @@ def lectura_simulada(ind, ficha=None):
     if pos is None or cambio is None:
         hallazgo = "No hay datos suficientes para relacionar el movimiento reciente con el rango de 52 semanas."
     else:
-        verbo = "avanzó" if cambio > 0 else "cayó" if cambio < 0 else "no cambió"
-        magnitud = abs(cambio)
         distancia_texto = (f" y {abs(distancia):.1f} % por debajo del máximo" if distancia is not None and distancia <= 0
-                           else "")
+                           else " y por encima del máximo informado" if distancia is not None else "")
         sujeto = (ficha or {}).get("ticker") or "La acción"
         ubicacion = "a mitad" if pos == 50 else f"en la {ind['zona_rango_52s']}"
-        hallazgo = (f"{sujeto} {verbo} {magnitud:.2f} % en la última sesión, pero se mantiene "
-                     f"{ubicacion} de su rango de 52 semanas{distancia_texto}. "
-                     "Este movimiento aislado no permite confirmar una tendencia.")
+        hallazgo = (f"{sujeto} permanece {ubicacion} de su rango de 52 semanas{distancia_texto}. "
+                     "Una sola sesión no permite confirmar una tendencia.")
     beta = ind["beta"]
     if beta is None:
-        lectura_riesgo = "No hay beta disponible para describir su sensibilidad histórica frente al mercado."
+        lectura_riesgo = "Sensibilidad no evaluable."
     elif beta < 0.8:
-        lectura_riesgo = "Menor sensibilidad histórica frente al mercado; no representa por sí sola el riesgo total."
+        lectura_riesgo = "Sensibilidad baja; no mide el riesgo total."
     elif beta <= 1.2:
-        lectura_riesgo = "Sensibilidad histórica similar al mercado; no representa por sí sola el riesgo total."
+        lectura_riesgo = "Sensibilidad similar al mercado; no mide el riesgo total."
     else:
-        lectura_riesgo = "Mayor sensibilidad histórica frente al mercado; no representa por sí sola el riesgo total."
+        lectura_riesgo = "Sensibilidad alta; no mide el riesgo total."
     pe = ind["pe_ratio"]
-    lectura_valuacion = ("No hay P/E disponible para esta lectura." if pe is None else
-                         f"El precio representa {pe:.1f} veces las utilidades por acción consideradas por la fuente. "
-                         "Requiere comparación con empresas similares.")
+    lectura_valuacion = ("P/E no disponible." if pe is None else "Comparar con empresas similares.")
     return {
         "hallazgo_principal": hallazgo,
         "lectura_riesgo": lectura_riesgo,
@@ -259,13 +254,16 @@ Reglas:
 - Conserva exactamente las cifras recibidas. No calcules ni agregues información externa.
 - No inventes datos faltantes ni cambies el significado del hallazgo de Euler.
 - No repitas la beta ni el P/E dentro del hallazgo principal.
+- Cada cifra aparece una sola vez y cada sección ocupa como máximo una oración.
+- Usa el semáforo de beta calculado por Python; representa sensibilidad histórica, no compra o venta.
+- No semaforices el P/E ni la posición anual.
 - No presentes un movimiento diario como tendencia ni la beta como riesgo total o probabilidad de pérdida.
 - No califiques el P/E como alto, bajo, caro o barato sin comparables.
 - No interpretes la capitalización como seguridad o calidad.
 - No uses lenguaje alarmista ni “comprar”, “vender”, “oportunidad” o “inversión segura”.
 - Si la fuente es simulada, indícalo claramente. Usa “Alpha Vantage vía MCP” sólo si la consulta real tuvo éxito.
 - Omite campos no disponibles o identifícalos como no disponibles.
-- Entrega texto plano, sin Markdown, con un máximo de 1,300 caracteres.
+- Entrega texto plano, sin Markdown, con un máximo de 850 caracteres.
 - Cierra SIEMPRE con esta frase exacta: {DESCARGO}"""
 
 
@@ -293,19 +291,19 @@ def nota_simulada(analisis):
     return (f"{FIRMA_VERA}\n"
             "⚠️ SIMULACIÓN · Datos ficticios\n\n"
             f"📊 {f['ticker']} | Precio, riesgo y valuación\n"
-            f"💵 Precio: USD {formatear_numero(f.get('precio'), 2)} | Cambio última sesión: "
+            f"💵 USD {formatear_numero(f.get('precio'), 2)} | Última sesión: "
             f"{formatear_porcentaje(ind.get('cambio_pct'))}\n\n"
             f"💡 Hallazgo principal\n{lec['hallazgo_principal']}\n\n"
-            "📍 Contexto de 52 semanas\n"
-            f"• Mínimo: USD {formatear_numero(f.get('min_52s'), 2)} | Máximo: USD {formatear_numero(f.get('max_52s'), 2)}\n"
-            f"• Posición en el rango: {formatear_numero(ind.get('posicion_rango_52s_pct'))} %\n\n"
+            "📍 Rango de 52 semanas (min–max)\n"
+            f"USD {formatear_numero(f.get('min_52s'), 2)}–{formatear_numero(f.get('max_52s'), 2)} | "
+            f"Posición: {formatear_numero(ind.get('posicion_rango_52s_pct'))} %\n\n"
             "⚖️ Riesgo\n"
-            f"• Beta: {formatear_numero(ind.get('beta'), 2)} | {lec['lectura_riesgo']}\n\n"
+            f"{ind['semaforo_beta'].split()[0]} Beta: {formatear_numero(ind.get('beta'), 2)} | {lec['lectura_riesgo']}\n\n"
             "🏢 Perfil y valuación\n"
-            f"• Sector: {f.get('sector') or 'no disponible'} | Capitalización: {formatear_capitalizacion(f.get('cap_mercado_usd'))}\n"
-            f"• P/E: {formatear_numero(ind.get('pe_ratio'))}x | {lec['lectura_valuacion']}\n\n"
+            f"{f.get('sector') or 'no disponible'} | Cap.: {formatear_capitalizacion(f.get('cap_mercado_usd'))}\n"
+            f"P/E: {formatear_numero(ind.get('pe_ratio'))}x | {lec['lectura_valuacion']}\n\n"
             f"🔎 Para profundizar\n{lec['pregunta_para_investigar']}\n\n"
-            f"{fecha_fuente}\n\nDatos simulados con fines educativos. {DESCARGO}")
+            f"{fecha_fuente}\n\n{DESCARGO}")
 
 
 def agente_comunicador(analisis):
