@@ -158,8 +158,8 @@ def test_los_agentes_se_presentan_con_su_nombre():
 def test_nota_financiera_simulada_es_trazable_y_no_recomienda():
     r = pl.pipeline("AAPL", avisar=lambda t: None)
     nota = r["entrega_3_nota"]
-    for texto in ("Hallazgo principal", "Rango de 52 semanas (min–max)", "Perfil y valuación",
-                  "Cap.", "🔴 Beta", "Fuente: simulación local", "+1.20 %"):
+    for texto in ("Hallazgo principal", "Rango de 52 semanas (mínimo–máximo)", "Perfil y valuación",
+                  "Capitalización", "🔴 Beta", "Fuente: simulación local", "150.00 USD (+1.20 % en el día)"):
         assert texto in nota
     assert "Alpha Vantage vía MCP" not in nota
     assert nota.count("+1.20 %") == 1

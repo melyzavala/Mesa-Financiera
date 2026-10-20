@@ -201,16 +201,16 @@ def lectura_simulada(ind, ficha=None):
         sujeto = (ficha or {}).get("ticker") or "La acción"
         ubicacion = "a mitad" if pos == 50 else f"en la {ind['zona_rango_52s']}"
         hallazgo = (f"{sujeto} permanece {ubicacion} de su rango de 52 semanas{distancia_texto}. "
-                     "Una sola sesión no permite confirmar una tendencia.")
+                     "Una sola observación no permite confirmar una tendencia.")
     beta = ind["beta"]
     if beta is None:
-        lectura_riesgo = "Sensibilidad no evaluable."
+        lectura_riesgo = "Sensibilidad al mercado: no evaluable."
     elif beta < 0.8:
-        lectura_riesgo = "Sensibilidad baja; no mide el riesgo total."
+        lectura_riesgo = "Sensibilidad al mercado: baja; no mide el riesgo total."
     elif beta <= 1.2:
-        lectura_riesgo = "Sensibilidad similar al mercado; no mide el riesgo total."
+        lectura_riesgo = "Sensibilidad al mercado: similar; no mide el riesgo total."
     else:
-        lectura_riesgo = "Sensibilidad alta; no mide el riesgo total."
+        lectura_riesgo = "Sensibilidad al mercado: alta; no mide el riesgo total."
     pe = ind["pe_ratio"]
     lectura_valuacion = ("P/E no disponible." if pe is None else "Comparar con empresas similares.")
     return {
@@ -271,7 +271,7 @@ def formatear_capitalizacion(valor):
     numero = a_numero(valor)
     if numero is None:
         return "no disponible"
-    return f"USD {numero / 1_000_000_000:,.0f} mil millones"
+    return f"{numero / 1_000_000_000:,.0f} mil millones USD"
 
 
 def formatear_numero(valor, decimales=1):
@@ -291,16 +291,16 @@ def nota_simulada(analisis):
     return (f"{FIRMA_VERA}\n"
             "⚠️ SIMULACIÓN · Datos ficticios\n\n"
             f"📊 {f['ticker']} | Precio, riesgo y valuación\n"
-            f"💵 USD {formatear_numero(f.get('precio'), 2)} | Última sesión: "
-            f"{formatear_porcentaje(ind.get('cambio_pct'))}\n\n"
+            f"💵 {formatear_numero(f.get('precio'), 2)} USD "
+            f"({formatear_porcentaje(ind.get('cambio_pct'))} en el día)\n\n"
             f"💡 Hallazgo principal\n{lec['hallazgo_principal']}\n\n"
-            "📍 Rango de 52 semanas (min–max)\n"
-            f"USD {formatear_numero(f.get('min_52s'), 2)}–{formatear_numero(f.get('max_52s'), 2)} | "
+            "📍 Rango de 52 semanas (mínimo–máximo)\n"
+            f"{formatear_numero(f.get('min_52s'), 2)}–{formatear_numero(f.get('max_52s'), 2)} USD | "
             f"Posición: {formatear_numero(ind.get('posicion_rango_52s_pct'))} %\n\n"
             "⚖️ Riesgo\n"
             f"{ind['semaforo_beta'].split()[0]} Beta: {formatear_numero(ind.get('beta'), 2)} | {lec['lectura_riesgo']}\n\n"
             "🏢 Perfil y valuación\n"
-            f"{f.get('sector') or 'no disponible'} | Cap.: {formatear_capitalizacion(f.get('cap_mercado_usd'))}\n"
+            f"{f.get('sector') or 'no disponible'} | Capitalización: {formatear_capitalizacion(f.get('cap_mercado_usd'))}\n"
             f"P/E: {formatear_numero(ind.get('pe_ratio'))}x | {lec['lectura_valuacion']}\n\n"
             f"🔎 Para profundizar\n{lec['pregunta_para_investigar']}\n\n"
             f"{fecha_fuente}\n\n{DESCARGO}")
