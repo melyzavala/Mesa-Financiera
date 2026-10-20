@@ -162,6 +162,7 @@ def test_nota_financiera_simulada_es_trazable_y_no_recomienda():
                   "Capitalización", "🔴 Beta", "Fuente: simulación local", "150.00 USD (+1.20 % en el día)"):
         assert texto in nota
     assert "Alpha Vantage vía MCP" not in nota
+    assert "no permite confirmar una tendencia" not in nota
     assert nota.count("+1.20 %") == 1
     assert len(nota) <= 850
 

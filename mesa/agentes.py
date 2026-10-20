@@ -182,8 +182,8 @@ Reglas:
 - La capitalización describe tamaño; no demuestra seguridad, calidad ni rentabilidad.
 - No infieras causalidad ni uses lenguaje de compra, venta u oportunidad.
 - Si faltan datos, declara la limitación y usa exclusivamente la información recibida.
-El hallazgo principal debe explicar la posición dentro del rango de 52 semanas en una o dos frases,
-ser verificable y no repetir el cambio de la sesión, la beta ni el P/E.
+El hallazgo principal debe explicar la posición dentro del rango de 52 semanas en una frase,
+ser verificable y no repetir el cambio de la sesión, la beta, el P/E ni una advertencia genérica sobre tendencias.
 Responde SOLO con JSON con las claves:
   hallazgo_principal, lectura_riesgo, lectura_valuacion,
   dato_pendiente, pregunta_para_investigar"""
@@ -200,8 +200,7 @@ def lectura_simulada(ind, ficha=None):
                            else " y por encima del máximo informado" if distancia is not None else "")
         sujeto = (ficha or {}).get("ticker") or "La acción"
         ubicacion = "a mitad" if pos == 50 else f"en la {ind['zona_rango_52s']}"
-        hallazgo = (f"{sujeto} permanece {ubicacion} de su rango de 52 semanas{distancia_texto}. "
-                     "Una sola observación no permite confirmar una tendencia.")
+        hallazgo = f"{sujeto} permanece {ubicacion} de su rango de 52 semanas{distancia_texto}."
     beta = ind["beta"]
     if beta is None:
         lectura_riesgo = "Sensibilidad al mercado: no evaluable."
@@ -254,6 +253,7 @@ Reglas:
 - Conserva exactamente las cifras recibidas. No calcules ni agregues información externa.
 - No inventes datos faltantes ni cambies el significado del hallazgo de Euler.
 - No repitas la beta ni el P/E dentro del hallazgo principal.
+- No agregues al hallazgo una advertencia genérica sobre tendencias.
 - Cada cifra aparece una sola vez y cada sección ocupa como máximo una oración.
 - Usa el semáforo de beta calculado por Python; representa sensibilidad histórica, no compra o venta.
 - No semaforices el P/E ni la posición anual.
