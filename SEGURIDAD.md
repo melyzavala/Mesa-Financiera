@@ -6,9 +6,10 @@ Este proyecto educativo aplica defensa por capas a tres superficies: Telegram, l
 |---|---|---|
 | Acceso de un chat desconocido | Denegación por defecto si falta `TELEGRAM_CHAT_ID` y comparación exacta del chat | `test_bot_deniega_si_falta_chat_id` |
 | Comandos ambiguos o texto añadido | Formato exacto `/analiza TICKER` y validación del ticker | `test_comando_exige_formato_exacto` |
-| Prompt injection en datos externos | Iris recibe la instrucción de tratar el MCP como datos; después Python valida campos y texto | `test_ficha_mcp_rechaza_inyeccion_y_rango_imposible` |
-| Herramientas MCP imprevistas | Lista permitida para cotización y series semanales ajustadas; máximo tres llamadas | `test_herramientas_mcp_tienen_lista_y_limite` |
-| Datos incoherentes | Contrato JSON, conversión numérica, coincidencia de ticker y controles de rangos básicos | `test_ficha_mcp_se_normaliza_y_rechaza_campos_extra` |
+| Prompt injection en datos externos | Python trata la respuesta como datos, limita campos y rechaza patrones de instrucciones | `test_ficha_alpha_rechaza_inyeccion_y_rango_imposible` |
+| Funciones de datos imprevistas | Lista permitida para cotización y series semanales ajustadas; exactamente tres consultas por análisis | `test_alpha_permite_solo_las_dos_funciones_previstas` |
+| Falla real presentada como simulación | La cadena se detiene antes de OpenAI y comunica que no generó datos ficticios | `test_falla_alpha_no_gasta_en_openai_ni_genera_simulacion` |
+| Datos incoherentes | Contrato JSON, conversión numérica, coincidencia de ticker y controles de rangos básicos | `test_ficha_alpha_se_normaliza_y_rechaza_campos_extra` |
 | Consumo accidental | Máximo de 3 análisis por corrida, espera por ticker repetido e interruptor de modo real | pruebas de configuración y `test_cooldown_evitar_solicitud_duplicada` |
 | Exposición de credenciales | Variables de entorno, `.env` ignorado, resumen enmascarado y credenciales de checkout no persistentes | `test_resumen_no_expone_secretos` y workflows |
 

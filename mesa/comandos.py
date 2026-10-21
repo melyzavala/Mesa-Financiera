@@ -9,7 +9,7 @@ _ULTIMA_SOLICITUD = {}
 
 AYUDA = ("🤖 Mesa Financiera de 3 agentes\n"
          "/analiza TICKER → ejemplo: /analiza AAPL\n"
-         "Batuta dirige: Iris (datos por MCP) → Euler (análisis) → Vera (nota)\n"
+         "Batuta dirige: Iris (Alpha Vantage) → Euler (análisis) → Vera (nota)\n"
          "Límite gratuito de Alpha Vantage: 25 consultas al día.")
 
 
@@ -54,6 +54,6 @@ def atender(mensaje):
         return resultado
     except Exception as error:
         _ULTIMA_SOLICITUD.pop(clave, None)  # un fallo no bloquea un reintento legítimo
-        enviar(chat_id, f"⚠️ No pude completar el análisis ({type(error).__name__}). "
-                        "Revisa llaves y saldo, o intenta en unos minutos.")
+        enviar(chat_id, f"⚠️ No pude completar el análisis real: {error}. "
+                        "No se generaron datos ficticios. Puedes intentar de nuevo en unos minutos.")
         raise

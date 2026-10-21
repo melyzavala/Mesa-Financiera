@@ -7,7 +7,7 @@ Tú das la orden desde **Telegram**, **Batuta** (el orquestador) dirige y tres e
 
 | Agente | Personalidad | Qué hace |
 |---|---|---|
-| **Iris** · La Recolectora | Curiosa y meticulosa; jamás inventa un dato | Consulta datos reales de Alpha Vantage por MCP |
+| **Iris** · La Recolectora | Curiosa y meticulosa; jamás inventa un dato | Consulta y valida datos reales de Alpha Vantage |
 | **Euler** · El Analista Financiero | Prudente, analítico y metodológicamente estricto | Interpreta precio, trayectoria y riesgo sin recalcular cifras |
 | **Vera** · La Editora Financiera | Clara, selectiva y serena | Jerarquiza el hallazgo y redacta la nota final para Telegram |
 
@@ -17,7 +17,7 @@ Tú en Telegram: /analiza AAPL
         ▼
  Batuta · Orquestador (mesa/pipeline.py)
         │
-        ├─► Iris  · Recolectora ── consulta Alpha Vantage por MCP ──► ficha JSON
+        ├─► Iris  · Recolectora ── consulta Alpha Vantage API ──────► ficha JSON
         ├─► Euler · Analista Financiero ─ Python calcula, OpenAI interpreta ─► análisis JSON
         └─► Vera  · Editora Financiera ─ jerarquiza y redacta ───────────────► mensaje en Telegram
 ```
@@ -69,16 +69,21 @@ Dónde guardarlas, según la ruta: **Colab** → panel 🔑 · **Actions** → S
 **Codespaces** → tu perfil → Settings → Codespaces → Codespaces secrets · **Tu computadora** → archivo `.env`.
 Nunca las escribas en el código ni las subas a GitHub.
 
-Iris utiliza únicamente `GLOBAL_QUOTE` y `TIME_SERIES_WEEKLY_ADJUSTED`: una consulta de
+Iris consulta directamente la API de Alpha Vantage y utiliza únicamente `GLOBAL_QUOTE` y
+`TIME_SERIES_WEEKLY_ADJUSTED`: una consulta de
 cotización, una serie para la acción y una serie de SPY. Python calcula el rango anual,
 los rendimientos ajustados, la volatilidad y una beta de 104 semanas frente a SPY.
 No se solicitan `OVERVIEW`, P/E, sector ni capitalización porque ese endpoint es premium.
+
+Los datos se validan antes de llamar a OpenAI. Si Alpha Vantage falla o agota su cuota, la
+ejecución informa el problema y se detiene: nunca reemplaza una consulta real por simulación.
+Euler y Vera reciben sólo la ficha compacta y los indicadores calculados para reducir tokens.
 
 ## Seguridad y control de consumo
 
 - El bot se cierra si falta `TELEGRAM_CHAT_ID`; no acepta chats desconocidos por defecto.
 - Telegram acepta únicamente el formato exacto `/analiza TICKER`.
-- Iris trata la respuesta MCP como datos no confiables, limita las herramientas previstas y valida la ficha antes de entregarla a Euler.
+- Iris trata la respuesta de Alpha Vantage como datos no confiables, limita las funciones previstas y valida la ficha antes de entregarla a Euler.
 - Cada ejecución procesa como máximo 3 análisis. Un ticker repetido espera 60 segundos dentro del mismo proceso.
 - `HABILITAR_MODO_REAL=0` funciona como interruptor de emergencia, aunque las llaves estén configuradas.
 - La protección completa y sus límites están en [`SEGURIDAD.md`](SEGURIDAD.md).

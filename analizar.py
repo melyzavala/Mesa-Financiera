@@ -35,7 +35,7 @@ def main():
 
     try:
         resultado = pipeline(args.ticker, avisar=avisar)
-    except ValueError as error:
+    except (ValueError, RuntimeError) as error:
         sys.exit(f"❌ {error}")
 
     print("\n" + "=" * 60 + "\nNOTA FINAL (Vera · Agente 3)\n" + "=" * 60)

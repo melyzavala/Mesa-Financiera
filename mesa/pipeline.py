@@ -31,10 +31,10 @@ def pipeline(ticker, avisar=print, guardar=True):
 
     avisar(f"🎼 Batuta · Orquestador\nRecibí tu orden. Inicio la cadena para {ticker} (modo {modo}).")
     avisar(f"🛰️ Iris · Recolectora buscando datos de {ticker}…")
-    ficha, herramientas = agente_recolector(ticker)
+    ficha, consultas = agente_recolector(ticker)
     if config.MODO_CLASE:
         avisar("📦 Entrega 1→2 · Iris → Euler (ficha):\n" + json.dumps(ficha, ensure_ascii=False, indent=1)[:1500]
-               + f"\n🔧 Herramientas MCP usadas: {', '.join(herramientas) or 'ninguna'}")
+               + f"\n🔧 Consultas Alpha Vantage: {', '.join(consultas) or 'ninguna (simulación)'}")
 
     avisar("🧮 Euler · Analista Financiero calculando e interpretando…")
     analisis = agente_analista(ficha)
@@ -50,7 +50,7 @@ def pipeline(ticker, avisar=print, guardar=True):
         "modo": modo,
         "fecha_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "entrega_1_ficha": ficha,
-        "herramientas_mcp": herramientas,
+        "consultas_alpha_vantage": consultas,
         "entrega_2_analisis": analisis,
         "entrega_3_nota": nota,
     }
