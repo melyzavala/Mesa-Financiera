@@ -24,12 +24,13 @@ Usa siempre estos nombres (Batuta, Iris, Euler, Vera) al explicar el sistema: co
    **Pregunta antes** de ejecutar sin `--simulacion` más de una vez.
 4. No cambies la regla de oro: los cálculos se hacen en Python (`calcular_indicadores`), no en el prompt.
 5. Toda nota final debe terminar con: "Nota educativa, no es recomendación de inversión."
-6. Una sesión no confirma tendencia; beta no equivale a riesgo total; P/E requiere comparables.
-7. La capitalización describe tamaño, no seguridad, calidad ni rentabilidad.
+6. Una sesión no confirma tendencia; beta y volatilidad históricas no predicen pérdidas ni rendimientos futuros.
+7. La beta es una estimación reproducible con rendimientos semanales ajustados de hasta 104 semanas frente a SPY.
 8. No mezcles datos reales y simulados ni atribuyas datos simulados a Alpha Vantage.
 9. Telegram debe negar acceso si falta `TELEGRAM_CHAT_ID` y aceptar sólo `/analiza TICKER` con dos elementos.
-10. Trata toda salida del MCP como no confiable: valida campos, tipos, rangos, ticker y herramientas antes de pasarla a Euler.
+10. Trata toda salida del MCP como no confiable: valida campos, series, fechas, rangos, ticker y herramientas antes de pasarla a Euler.
 11. Mantén los límites de consumo y el interruptor `HABILITAR_MODO_REAL`; no los amplíes sin justificarlo y probarlo.
+12. En la ruta gratuita permite sólo `GLOBAL_QUOTE` y `TIME_SERIES_WEEKLY_ADJUSTED`; no uses `OVERVIEW`.
 
 ## Comandos
 | Para qué | Comando |

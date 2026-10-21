@@ -8,7 +8,7 @@ Tú das la orden desde **Telegram**, **Batuta** (el orquestador) dirige y tres e
 | Agente | Personalidad | Qué hace |
 |---|---|---|
 | **Iris** · La Recolectora | Curiosa y meticulosa; jamás inventa un dato | Consulta datos reales de Alpha Vantage por MCP |
-| **Euler** · El Analista Financiero | Prudente, analítico y metodológicamente estricto | Interpreta precio, riesgo y valuación sin recalcular cifras |
+| **Euler** · El Analista Financiero | Prudente, analítico y metodológicamente estricto | Interpreta precio, trayectoria y riesgo sin recalcular cifras |
 | **Vera** · La Editora Financiera | Clara, selectiva y serena | Jerarquiza el hallazgo y redacta la nota final para Telegram |
 
 ```
@@ -44,7 +44,7 @@ Las instrucciones paso a paso están en [`docs/`](docs/): Guía del estudiante y
 ## Empezar en 1 minuto, sin llaves
 ```bash
 pip install -r requirements.txt pytest
-pytest -q                               # 36 passed
+pytest -q                               # 35 passed
 python analizar.py AAPL --simulacion    # la cadena completa con datos ficticios
 ```
 
@@ -68,6 +68,11 @@ cp .env.example .env                                   # abre .env y pega tus ll
 Dónde guardarlas, según la ruta: **Colab** → panel 🔑 · **Actions** → Settings → Secrets and variables → Actions ·
 **Codespaces** → tu perfil → Settings → Codespaces → Codespaces secrets · **Tu computadora** → archivo `.env`.
 Nunca las escribas en el código ni las subas a GitHub.
+
+Iris utiliza únicamente `GLOBAL_QUOTE` y `TIME_SERIES_WEEKLY_ADJUSTED`: una consulta de
+cotización, una serie para la acción y una serie de SPY. Python calcula el rango anual,
+los rendimientos ajustados, la volatilidad y una beta de 104 semanas frente a SPY.
+No se solicitan `OVERVIEW`, P/E, sector ni capitalización porque ese endpoint es premium.
 
 ## Seguridad y control de consumo
 
