@@ -74,6 +74,8 @@ Iris consulta directamente la API de Alpha Vantage y utiliza únicamente `GLOBAL
 cotización, una serie para la acción y una serie de SPY. Python calcula el rango anual,
 los rendimientos ajustados, la volatilidad y una beta de 104 semanas frente a SPY.
 No se solicitan `OVERVIEW`, P/E, sector ni capitalización porque ese endpoint es premium.
+Para mantener consistencia financiera, los rendimientos usan exclusivamente cierres ajustados
+y los máximos y mínimos semanales se convierten con el mismo factor de ajuste.
 
 Los datos se validan antes de llamar a OpenAI. Si Alpha Vantage falla o agota su cuota, la
 ejecución informa el problema y se detiene: nunca reemplaza una consulta real por simulación.

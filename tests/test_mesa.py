@@ -110,6 +110,22 @@ def test_aviso_de_iris_distingue_fuente_real_y_simulada():
         "Alpha Vantage API · 3 consultas")
 
 
+def test_rendimientos_usan_solo_cierres_ajustados():
+    ficha = ficha_sintetica(precio=999)
+    serie = ficha["serie_semanal_accion"]
+    esperado = round((serie[-1]["cierre_ajustado"] / serie[-5]["cierre_ajustado"] - 1) * 100, 1)
+    assert agentes.calcular_indicadores(ficha)["rendimiento_1m_pct"] == esperado
+
+
+def test_rango_semanal_aplica_factor_de_ajuste():
+    datos = {"Weekly Adjusted Time Series": {
+        "2026-10-16": {"2. high": "210", "3. low": "190", "4. close": "200",
+                       "5. adjusted close": "100"}
+    }}
+    fila = agentes._serie_desde_alpha(datos, incluir_rango=True)[0]
+    assert fila["maximo"] == 105 and fila["minimo"] == 95
+
+
 def test_alpha_caido_no_disfraza_la_falla_como_simulacion(monkeypatch):
     monkeypatch.setattr(config, "MODO_SIMULACION", False)
     monkeypatch.setattr(agentes, "obtener_ficha_alpha",
@@ -151,6 +167,7 @@ def test_respuesta_alpha_se_convierte_sin_usar_openai(monkeypatch):
     semanal = {}
     for fila in ficha_sintetica()["serie_semanal_accion"]:
         semanal[fila["fecha"]] = {"2. high": fila["maximo"], "3. low": fila["minimo"],
+                                   "4. close": fila["cierre_ajustado"],
                                    "5. adjusted close": fila["cierre_ajustado"]}
 
     def alpha_falso(funcion, ticker):
@@ -295,6 +312,8 @@ def test_nota_financiera_simulada_es_trazable_y_no_recomienda():
         assert texto in nota
     assert "Alpha Vantage API" not in nota
     assert "no permite confirmar una tendencia" not in nota
+    assert "se ubica cerca del máximo" in nota and "se mantiene cerca del máximo" not in nota
+    assert "rendimiento de los últimos 12 meses" in nota and "avance anual" not in nota
     assert nota.count("+1.20 %") == 1
     assert len(nota) <= 850
 

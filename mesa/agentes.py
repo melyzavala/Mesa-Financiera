@@ -172,9 +172,16 @@ def _serie_desde_alpha(datos, incluir_rango):
     for fecha, valores in sorted(bruto.items())[-105:]:
         if not isinstance(valores, dict):
             raise DatosExternosError("fila semanal no válida en Alpha Vantage")
-        fila = {"fecha": fecha, "cierre_ajustado": valores.get("5. adjusted close")}
+        cierre_ajustado = a_numero(valores.get("5. adjusted close"))
+        fila = {"fecha": fecha, "cierre_ajustado": cierre_ajustado}
         if incluir_rango:
-            fila.update({"maximo": valores.get("2. high"), "minimo": valores.get("3. low")})
+            cierre = a_numero(valores.get("4. close"))
+            maximo = a_numero(valores.get("2. high"))
+            minimo = a_numero(valores.get("3. low"))
+            if None in (cierre_ajustado, cierre, maximo, minimo) or cierre <= 0:
+                raise DatosExternosError("fila semanal incompleta en Alpha Vantage")
+            factor_ajuste = cierre_ajustado / cierre
+            fila.update({"maximo": maximo * factor_ajuste, "minimo": minimo * factor_ajuste})
         filas.append(fila)
     return filas
 
@@ -249,10 +256,11 @@ def calcular_indicadores(ficha):
     minimo = min((a_numero(f.get("minimo")) for f in ultimas_52), default=None)
 
     def rendimiento(semanas):
-        if precio is None or len(accion) <= semanas:
+        if len(accion) <= semanas:
             return None
+        cierre_actual = a_numero(accion[-1].get("cierre_ajustado"))
         base = a_numero(accion[-(semanas + 1)].get("cierre_ajustado"))
-        return None if base in (None, 0) else round((precio / base - 1) * 100, 1)
+        return None if cierre_actual is None or base in (None, 0) else round((cierre_actual / base - 1) * 100, 1)
 
     por_fecha_accion = {f["fecha"]: a_numero(f.get("cierre_ajustado")) for f in accion}
     por_fecha_spy = {f["fecha"]: a_numero(f.get("cierre_ajustado")) for f in spy}
@@ -340,6 +348,8 @@ Reglas:
 - La volatilidad histórica no predice pérdidas ni rendimientos futuros.
 - No infieras causalidad ni uses lenguaje de compra, venta u oportunidad.
 - Si faltan datos, declara la limitación y usa exclusivamente la información recibida.
+- Describe la posición actual con “se ubica”; evita “se mantiene”, porque una posición no demuestra permanencia.
+- Para la pregunta de seguimiento usa “rendimiento de los últimos 12 meses”, no “avance anual”.
 El hallazgo principal debe explicar la posición dentro del rango de 52 semanas en una frase,
 ser verificable y no repetir el cambio de la sesión, la beta ni una advertencia genérica sobre tendencias.
 Responde SOLO con JSON con las claves:
@@ -359,7 +369,7 @@ def lectura_simulada(ind, ficha=None):
             ubicacion = "a mitad"
         direccion = ("rendimientos positivos" if r3 > 0 and r12 > 0 else
                      "rendimientos negativos" if r3 < 0 and r12 < 0 else "una trayectoria mixta")
-        hallazgo = f"{sujeto} se mantiene {ubicacion} de su rango anual y registra {direccion} a 3 y 12 meses."
+        hallazgo = f"{sujeto} se ubica {ubicacion} de su rango anual y registra {direccion} a 3 y 12 meses."
     beta = ind["beta"]
     if beta is None:
         lectura_riesgo = "Sensibilidad frente a SPY: no evaluable."
@@ -373,7 +383,8 @@ def lectura_simulada(ind, ficha=None):
         "hallazgo_principal": hallazgo,
         "lectura_riesgo": lectura_riesgo,
         "dato_pendiente": "Los datos gratuitos no incluyen utilidades ni flujo de efectivo.",
-        "pregunta_para_investigar": "¿El avance anual coincide con una mejora en utilidades y flujo de efectivo?",
+        "pregunta_para_investigar": ("¿El rendimiento de los últimos 12 meses coincide con una mejora "
+                                      "en utilidades y flujo de efectivo?"),
     }
 
 
