@@ -20,18 +20,31 @@ def normalizar_ticker(texto):
     return ticker
 
 
-def resumir_ficha_para_aviso(ficha):
-    """Muestra trazabilidad en Telegram sin publicar las series completas."""
-    resumen = {campo: ficha.get(campo) for campo in
-               ("ticker", "precio", "cambio_pct", "fecha_dato", "fuente")}
-    for campo in ("serie_semanal_accion", "serie_semanal_spy"):
-        serie = ficha.get(campo) or []
-        resumen[campo] = {
+def resumir_ficha_para_aviso(ficha, consultas=None):
+    """Conserva el contrato JSON visible sin publicar las series completas."""
+    def resumen_serie(serie, mostrar_periodo=False):
+        serie = serie or []
+        salida = {
             "observaciones": len(serie),
-            "primera": serie[0] if serie else None,
-            "ultima": serie[-1] if serie else None,
+            "cierre_inicial": serie[0].get("cierre_ajustado") if serie else None,
+            "cierre_final": serie[-1].get("cierre_ajustado") if serie else None,
         }
-    return resumen
+        if mostrar_periodo:
+            salida["periodo"] = (f"{serie[0].get('fecha')}–{serie[-1].get('fecha')}"
+                                 if serie else None)
+        return salida
+
+    simulada = str(ficha.get("fuente", "")).startswith("DATOS DEMO")
+    fuente = "simulación local" if simulada else f"Alpha Vantage API · {len(consultas or [])} consultas"
+    return {
+        "ticker": ficha.get("ticker"),
+        "precio": ficha.get("precio"),
+        "cambio_pct": ficha.get("cambio_pct"),
+        "fecha_dato": ficha.get("fecha_dato"),
+        "accion": resumen_serie(ficha.get("serie_semanal_accion"), mostrar_periodo=True),
+        "spy": resumen_serie(ficha.get("serie_semanal_spy")),
+        "fuente": fuente,
+    }
 
 
 def pipeline(ticker, avisar=print, guardar=True):
@@ -47,10 +60,9 @@ def pipeline(ticker, avisar=print, guardar=True):
     avisar(f"🛰️ Iris · Recolectora buscando datos de {ticker}…")
     ficha, consultas = agente_recolector(ticker)
     if config.MODO_CLASE:
-        ficha_visible = resumir_ficha_para_aviso(ficha)
+        ficha_visible = resumir_ficha_para_aviso(ficha, consultas)
         avisar("📦 Entrega 1→2 · Iris → Euler (resumen de ficha):\n"
-               + json.dumps(ficha_visible, ensure_ascii=False, indent=1)
-               + f"\n🔧 Consultas Alpha Vantage: {', '.join(consultas) or 'ninguna (simulación)'}")
+               + json.dumps(ficha_visible, ensure_ascii=False, indent=1))
 
     avisar("🧮 Euler · Analista Financiero calculando e interpretando…")
     analisis = agente_analista(ficha)

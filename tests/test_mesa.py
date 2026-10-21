@@ -94,11 +94,20 @@ def test_cadena_completa_output_es_input():
 def test_aviso_de_iris_muestra_solo_primera_y_ultima_observacion():
     ficha = ficha_sintetica()
     resumen = pl.resumir_ficha_para_aviso(ficha)
-    accion = resumen["serie_semanal_accion"]
+    accion = resumen["accion"]
     assert accion["observaciones"] == 105
-    assert accion["primera"] == ficha["serie_semanal_accion"][0]
-    assert accion["ultima"] == ficha["serie_semanal_accion"][-1]
-    assert ficha["serie_semanal_accion"][1] not in accion.values()
+    assert accion["cierre_inicial"] == ficha["serie_semanal_accion"][0]["cierre_ajustado"]
+    assert accion["cierre_final"] == ficha["serie_semanal_accion"][-1]["cierre_ajustado"]
+    assert "serie_semanal_accion" not in resumen
+
+
+def test_aviso_de_iris_distingue_fuente_real_y_simulada():
+    simulada = agentes.ficha_demo("AAPL", "prueba")
+    real = ficha_sintetica()
+    real["fuente"] = "Alpha Vantage API"
+    assert pl.resumir_ficha_para_aviso(simulada)["fuente"] == "simulación local"
+    assert pl.resumir_ficha_para_aviso(real, list(agentes.CONSULTAS_ALPHA))["fuente"] == (
+        "Alpha Vantage API · 3 consultas")
 
 
 def test_alpha_caido_no_disfraza_la_falla_como_simulacion(monkeypatch):
@@ -273,6 +282,7 @@ def test_los_agentes_se_presentan_con_su_nombre():
     texto = "\n".join(avisos)
     for nombre in ("Batuta", "Iris", "Euler", "Vera"):
         assert nombre in texto
+    assert "Consultas Alpha Vantage:" not in texto
     assert r["entrega_3_nota"].startswith(agentes.FIRMA_VERA)
 
 
