@@ -78,6 +78,8 @@ No se solicitan `OVERVIEW`, P/E, sector ni capitalización porque ese endpoint e
 Los datos se validan antes de llamar a OpenAI. Si Alpha Vantage falla o agota su cuota, la
 ejecución informa el problema y se detiene: nunca reemplaza una consulta real por simulación.
 Euler y Vera reciben sólo la ficha compacta y los indicadores calculados para reducir tokens.
+En modo clase, Telegram muestra únicamente la primera y la última observación de cada serie;
+el archivo de evidencia conserva las series completas para que los cálculos sean auditables.
 
 ## Seguridad y control de consumo
 

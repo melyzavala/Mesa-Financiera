@@ -20,6 +20,20 @@ def normalizar_ticker(texto):
     return ticker
 
 
+def resumir_ficha_para_aviso(ficha):
+    """Muestra trazabilidad en Telegram sin publicar las series completas."""
+    resumen = {campo: ficha.get(campo) for campo in
+               ("ticker", "precio", "cambio_pct", "fecha_dato", "fuente")}
+    for campo in ("serie_semanal_accion", "serie_semanal_spy"):
+        serie = ficha.get(campo) or []
+        resumen[campo] = {
+            "observaciones": len(serie),
+            "primera": serie[0] if serie else None,
+            "ultima": serie[-1] if serie else None,
+        }
+    return resumen
+
+
 def pipeline(ticker, avisar=print, guardar=True):
     """Batuta ejecuta la cadena Iris → Euler → Vera.
 
@@ -33,7 +47,9 @@ def pipeline(ticker, avisar=print, guardar=True):
     avisar(f"🛰️ Iris · Recolectora buscando datos de {ticker}…")
     ficha, consultas = agente_recolector(ticker)
     if config.MODO_CLASE:
-        avisar("📦 Entrega 1→2 · Iris → Euler (ficha):\n" + json.dumps(ficha, ensure_ascii=False, indent=1)[:1500]
+        ficha_visible = resumir_ficha_para_aviso(ficha)
+        avisar("📦 Entrega 1→2 · Iris → Euler (resumen de ficha):\n"
+               + json.dumps(ficha_visible, ensure_ascii=False, indent=1)
                + f"\n🔧 Consultas Alpha Vantage: {', '.join(consultas) or 'ninguna (simulación)'}")
 
     avisar("🧮 Euler · Analista Financiero calculando e interpretando…")

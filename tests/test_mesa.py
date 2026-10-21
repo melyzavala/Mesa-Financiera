@@ -91,6 +91,16 @@ def test_cadena_completa_output_es_input():
         assert json.load(f)["ticker"] == "MSFT"
 
 
+def test_aviso_de_iris_muestra_solo_primera_y_ultima_observacion():
+    ficha = ficha_sintetica()
+    resumen = pl.resumir_ficha_para_aviso(ficha)
+    accion = resumen["serie_semanal_accion"]
+    assert accion["observaciones"] == 105
+    assert accion["primera"] == ficha["serie_semanal_accion"][0]
+    assert accion["ultima"] == ficha["serie_semanal_accion"][-1]
+    assert ficha["serie_semanal_accion"][1] not in accion.values()
+
+
 def test_alpha_caido_no_disfraza_la_falla_como_simulacion(monkeypatch):
     monkeypatch.setattr(config, "MODO_SIMULACION", False)
     monkeypatch.setattr(agentes, "obtener_ficha_alpha",
