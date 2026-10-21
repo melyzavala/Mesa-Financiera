@@ -34,6 +34,7 @@ jobs:
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
+      MODELO: ${{ vars.MODELO || 'gpt-5.4-mini' }}
       HABILITAR_MODO_REAL: ${{ vars.HABILITAR_MODO_REAL || '1' }}
       MAX_ANALISIS_POR_RUN: ${{ vars.MAX_ANALISIS_POR_RUN || '3' }}
       COOLDOWN_SEGUNDOS: ${{ vars.COOLDOWN_SEGUNDOS || '60' }}
