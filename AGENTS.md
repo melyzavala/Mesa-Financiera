@@ -7,7 +7,7 @@ un ecosistema de **3 agentes financieros** que se pasan el trabajo en cadena y s
 Telegram /analiza AAPL ─► Batuta · Orquestador (mesa/pipeline.py)
    ├─ Iris  · Recolectora  (Agente 1: API de Alpha Vantage + validación) ─► ficha JSON
    ├─ Euler · Analista Financiero (Agente 2: Python calcula, OpenAI interpreta) ─► análisis JSON
-   └─ Vera  · Editora Financiera  (Agente 3: OpenAI jerarquiza y redacta) ─► nota final en Telegram
+   └─ Vera  · Editora Financiera  (Agente 3: OpenAI edita; Python da formato) ─► nota final en Telegram
 ```
 
 Usa siempre estos nombres (Batuta, Iris, Euler, Vera) al explicar el sistema: coinciden con el mockup y con las guías.

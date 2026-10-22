@@ -2,7 +2,7 @@
 
   Iris  · La Recolectora  (Agente 1) → consulta la API de Alpha Vantage y entrega una FICHA (JSON)
   Euler · Analista Financiero (Agente 2) → recibe la ficha, Python calcula y OpenAI interpreta → ANÁLISIS (JSON)
-  Vera  · Editora Financiera  (Agente 3) → recibe el análisis y OpenAI redacta la NOTA final para Telegram
+  Vera  · Editora Financiera  (Agente 3) → edita el hallazgo; Python compone la NOTA para Telegram
   (Batuta, el orquestador que los dirige, vive en mesa/pipeline.py)
 
 Regla de oro: los números los calcula el código; la IA solo interpreta.
@@ -43,7 +43,7 @@ def _cliente_openai():
 def llamar_openai(system, mensaje, max_tokens=900):
     """Envía un mensaje compacto con la Responses API."""
     base = dict(model=config.MODELO, max_output_tokens=max_tokens, instructions=system,
-                input=mensaje, store=False)
+                input=mensaje, store=False, reasoning={"effort": "none"})
     cliente = _cliente_openai()
     respuesta = cliente.responses.create(**base)
     texto = respuesta.output_text.strip()
@@ -413,23 +413,16 @@ def agente_analista(ficha):
 PROMPT_COMUNICADOR = f"""Eres Vera, la Editora Financiera (Agente 3).
 Recibes la ficha, los indicadores calculados por Python y la interpretación de Euler.
 Tu personalidad es clara, selectiva, serena y orientada a comunicación financiera.
-Redacta una nota para Telegram con: identificación y modalidad; cierre y cambio del día;
-hallazgo principal; rango de 52 semanas; rendimientos ajustados; riesgo; pregunta; fecha, fuente y descargo.
+Tu tarea es editar únicamente el hallazgo principal y la pregunta para profundizar.
 Reglas:
-- Conserva exactamente las cifras recibidas. No calcules ni agregues información externa.
+- Conserva exactamente las cifras y el significado recibidos. No calcules ni agregues información externa.
 - No inventes datos faltantes ni cambies el significado del hallazgo de Euler.
 - No repitas la beta dentro del hallazgo principal.
 - No agregues al hallazgo una advertencia genérica sobre tendencias.
-- Cada cifra aparece una sola vez y cada sección ocupa como máximo una oración.
-- Usa el semáforo de beta calculado por Python; representa sensibilidad histórica frente a SPY, no compra o venta.
-- No semaforices la posición anual ni los rendimientos.
-- No presentes un movimiento diario como tendencia ni la beta como riesgo total o probabilidad de pérdida.
-- Presenta la beta como estimación propia y la volatilidad como histórica.
 - No uses lenguaje alarmista ni “comprar”, “vender”, “oportunidad” o “inversión segura”.
-- Si la fuente es simulada, indícalo claramente. Usa “Alpha Vantage API” sólo si la consulta real tuvo éxito.
-- Omite campos no disponibles o identifícalos como no disponibles.
-- Entrega texto plano, sin Markdown, con un máximo de 850 caracteres.
-- Cierra SIEMPRE con esta frase exacta: {DESCARGO}"""
+- Una oración por campo; máximo 220 caracteres para el hallazgo y 180 para la pregunta.
+- No redactes encabezados, modalidad, cifras de precio, riesgo, fuente ni descargo: Python los añadirá.
+Responde SOLO con JSON con las claves: hallazgo_principal, pregunta_para_investigar."""
 
 
 def formatear_capitalizacion(valor):
@@ -449,16 +442,37 @@ def formatear_porcentaje(valor, decimales=2):
     return "no disponible" if numero is None else f"{numero:+.{decimales}f} %"
 
 
-def nota_simulada(analisis):
+def _texto_editorial(valor, respaldo, limite):
+    """Acepta sólo una frase breve; ante una salida dudosa conserva el texto validado de Euler."""
+    if not isinstance(valor, str):
+        return respaldo
+    texto = " ".join(valor.split()).strip()
+    if not texto or len(texto) > limite or PATRONES_INYECCION.search(texto):
+        return respaldo
+    if "modalidad no disponible" in texto.lower():
+        return respaldo
+    numeros_nuevos = set(re.findall(r"\d+(?:[.,]\d+)?", texto))
+    numeros_validos = set(re.findall(r"\d+(?:[.,]\d+)?", respaldo))
+    if not numeros_nuevos.issubset(numeros_validos):
+        return respaldo
+    return texto
+
+
+def nota_estructurada(analisis, edicion=None):
     f, ind, lec = analisis["ficha"], analisis["indicadores"], analisis["lectura"]
-    fecha_fuente = ("🕒 Dato ficticio | Fuente: simulación local" if str(f.get("fuente", "")).startswith("DATOS DEMO")
-                    else f"🕒 Dato: {f.get('fecha_dato') or 'no disponible'} | Fuente: {f.get('fuente') or 'no disponible'}")
+    simulada = str(f.get("fuente", "")).startswith("DATOS DEMO")
+    modalidad = "⚠️ SIMULACIÓN · Datos ficticios" if simulada else "✅ DATOS REALES"
+    fecha_fuente = ("🕒 Dato ficticio | Fuente: simulación local" if simulada else
+                    f"🕒 {f.get('fecha_dato') or 'Fecha no disponible'} | Fuente: {f.get('fuente') or 'no disponible'}")
+    edicion = edicion or {}
+    hallazgo = _texto_editorial(edicion.get("hallazgo_principal"), lec["hallazgo_principal"], 220)
+    pregunta = _texto_editorial(edicion.get("pregunta_para_investigar"), lec["pregunta_para_investigar"], 180)
     return (f"{FIRMA_VERA}\n"
-            "⚠️ SIMULACIÓN · Datos ficticios\n\n"
+            f"{modalidad}\n\n"
             f"📊 {f['ticker']} | Precio, trayectoria y riesgo\n"
             f"💵 Cierre: {formatear_numero(f.get('precio'), 2)} USD | "
             f"Día: {formatear_porcentaje(ind.get('cambio_pct'))}\n\n"
-            f"💡 Hallazgo principal\n{lec['hallazgo_principal']}\n\n"
+            f"💡 Hallazgo principal\n{hallazgo}\n\n"
             "📍 Rango de 52 semanas (mínimo–máximo)\n"
             f"{formatear_numero(ind.get('min_52s'), 2)}–{formatear_numero(ind.get('max_52s'), 2)} USD | "
             f"Posición: {formatear_numero(ind.get('posicion_rango_52s_pct'))} %\n\n"
@@ -469,16 +483,21 @@ def nota_simulada(analisis):
             "⚖️ Riesgo histórico\n"
             f"{ind['semaforo_beta'].split()[0]} Beta: {formatear_numero(ind.get('beta'), 2)} | {lec['lectura_riesgo']}\n"
             f"Volatilidad anualizada: {formatear_numero(ind.get('volatilidad_anualizada_pct'))} %\n\n"
-            f"🔎 Para profundizar\n{lec['pregunta_para_investigar']}\n\n"
+            f"🔎 Para profundizar\n{pregunta}\n\n"
             f"{fecha_fuente}\n\n{DESCARGO}")
+
+
+def nota_simulada(analisis):
+    return nota_estructurada(analisis)
 
 
 def agente_comunicador(analisis):
     if config.MODO_SIMULACION or str(analisis["ficha"].get("fuente", "")).startswith("DATOS DEMO"):
         return nota_simulada(analisis)
-    entrada = {"ficha": resumen_ficha(analisis["ficha"]),
-               "indicadores": analisis["indicadores"], "lectura": analisis["lectura"]}
-    texto = llamar_openai(PROMPT_COMUNICADOR, json.dumps(entrada, ensure_ascii=False), max_tokens=600)
-    if DESCARGO not in texto:                      # garantía aunque el modelo lo olvide
-        texto += f"\n\n{DESCARGO}"
-    return f"{FIRMA_VERA}\n{texto}"
+    entrada = {"ticker": analisis["ficha"].get("ticker"), "lectura": analisis["lectura"]}
+    texto = llamar_openai(PROMPT_COMUNICADOR, json.dumps(entrada, ensure_ascii=False), max_tokens=220)
+    try:
+        edicion = extraer_json(texto)
+    except (ValueError, json.JSONDecodeError):
+        edicion = {}
+    return nota_estructurada(analisis, edicion)

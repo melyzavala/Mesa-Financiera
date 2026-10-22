@@ -34,7 +34,7 @@ TELEGRAM_CHAT_ID     = _texto("TELEGRAM_CHAT_ID")        # tu chat; el bot solo 
 OPENAI_API_KEY       = _texto("OPENAI_API_KEY")
 ALPHAVANTAGE_API_KEY = _texto("ALPHAVANTAGE_API_KEY")
 
-MODELO     = _texto("MODELO", "gpt-5.5")                 # modelo predeterminado de OpenAI
+MODELO     = _texto("MODELO", "gpt-5.4-mini")            # económico; Python controla el formato final
 MODO_CLASE = _bandera("MODO_CLASE", "1")                  # 1 = muestra cada entrega entre agentes
 
 # Interruptor explícito: permite desactivar el modo real aunque existan llaves.

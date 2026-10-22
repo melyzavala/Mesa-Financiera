@@ -201,13 +201,24 @@ def test_agentes_reales_encadenan_con_openai_simulado(monkeypatch):
                     '"dato_pendiente":"d","pregunta_para_investigar":"e"}')
         assert '"hallazgo_principal": "a"' in mensaje                       # recibió la entrega 2
         assert "serie_semanal_accion" not in mensaje
-        return "IBM: nota sin descargo"
+        return ('{"hallazgo_principal":"IBM se ubica en la zona media de su rango anual.",'
+                '"pregunta_para_investigar":"¿Qué explica su trayectoria reciente?"}')
 
     monkeypatch.setattr(agentes, "llamar_openai", openai_falso)
     r = pl.pipeline("IBM", avisar=lambda t: None)
     assert len(r["consultas_alpha_vantage"]) == 3
     assert r["entrega_1_ficha"]["fuente"] == "Alpha Vantage API"
-    assert r["entrega_3_nota"].endswith(agentes.DESCARGO)                   # el descargo se garantiza
+    nota = r["entrega_3_nota"]
+    assert nota.endswith(agentes.DESCARGO)                                  # el descargo se garantiza
+    assert "✅ DATOS REALES\n\n📊 IBM" in nota                              # Python controla formato y espacios
+    assert "IBM se ubica en la zona media" in nota
+
+
+def test_vera_descarta_cifras_inventadas_y_salida_no_estructurada(monkeypatch):
+    analisis = agentes.agente_analista(agentes.ficha_demo("AAPL", "modo simulación"))
+    respaldo = analisis["lectura"]["hallazgo_principal"]
+    assert agentes._texto_editorial("AAPL subió 99 %.", respaldo, 220) == respaldo
+    assert agentes._texto_editorial({"texto": "incorrecto"}, respaldo, 220) == respaldo
 
 
 def test_bot_ignora_chats_ajenos_y_responde_ayuda(monkeypatch):
