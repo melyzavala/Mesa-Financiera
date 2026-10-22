@@ -69,9 +69,6 @@ Dónde guardarlas, según la ruta: **Colab** → panel 🔑 · **Actions** → S
 **Codespaces** → tu perfil → Settings → Codespaces → Codespaces secrets · **Tu computadora** → archivo `.env`.
 Nunca las escribas en el código ni las subas a GitHub.
 
-Euler y Vera usan `gpt-5.4-mini` de forma predeterminada para reducir costo. Puedes cambiarlo
-sin modificar el código mediante la variable opcional `MODELO` en `.env` o en las variables de GitHub Actions.
-
 Iris consulta directamente la API de Alpha Vantage y utiliza únicamente `GLOBAL_QUOTE` y
 `TIME_SERIES_WEEKLY_ADJUSTED`: una consulta de
 cotización, una serie para la acción y una serie de SPY. Python calcula el rango anual,
