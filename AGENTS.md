@@ -59,6 +59,5 @@ Cuando te pidan ejecutar o probar la actividad, sigue este orden y reporta cada 
 ## Estructura
 - `mesa/config.py` llaves y modos · `mesa/agentes.py` los 3 agentes · `mesa/pipeline.py` el orquestador
 - `mesa/telegram_io.py` Bot API · `mesa/comandos.py` interpreta `/analiza`
-- `revisar_telegram.py` lo usa GitHub Actions cada 15 minutos; el botón manual con ticker vacío
-  sirve como respaldo cuando GitHub retrasa o descarta una ejecución programada
+- `revisar_telegram.py` lo usa GitHub Actions cada 15 minutos (funciona con la computadora apagada)
 - `.github/workflows/` automatizaciones · `tests/` pruebas en simulación

@@ -6,14 +6,13 @@ name: mesa-financiera
 
 on:
   schedule:
-    # Cada 15 minutos, fuera de los minutos más congestionados de GitHub Actions.
-    - cron: "7,22,37,52 * * * *"     # hora UTC; GitHub aún puede retrasar alguna ejecución
+    - cron: "*/15 * * * *"          # hora UTC; GitHub puede retrasar unos minutos las ejecuciones
   workflow_dispatch:
     inputs:
       ticker:
         description: "Ticker a analizar (déjalo vacío para solo revisar Telegram)"
         required: false
-        default: ""
+        default: "AAPL"
       simulacion:
         description: "Modo simulación (sin gastar llaves)"
         type: boolean

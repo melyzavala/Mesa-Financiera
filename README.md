@@ -98,9 +98,4 @@ el archivo de evidencia conserva las series completas para que los cálculos sea
 Para GitHub Actions puedes definir `HABILITAR_MODO_REAL`, `MAX_ANALISIS_POR_RUN` y
 `COOLDOWN_SEGUNDOS` en **Settings → Secrets and variables → Actions → Variables**.
 
-GitHub intenta revisar Telegram cada 15 minutos, en los minutos 07, 22, 37 y 52 de cada hora.
-Los cron de GitHub Actions pueden retrasarse o descartarse. Si un mensaje tarda, abre
-**Actions → mesa-financiera → Run workflow**, deja el ticker vacío y ejecuta el flujo:
-así sólo se revisan los mensajes pendientes de Telegram.
-
 > Material educativo. Las notas que generan los agentes **no son recomendaciones de inversión**.
