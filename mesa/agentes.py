@@ -139,6 +139,23 @@ class DatosExternosError(RuntimeError):
 CONSULTAS_ALPHA = ("GLOBAL_QUOTE", "TIME_SERIES_WEEKLY_ADJUSTED", "TIME_SERIES_WEEKLY_ADJUSTED")
 
 
+def _clasificar_rechazo_alpha(datos, funcion):
+    """Traduce avisos conocidos sin reenviar texto externo ni exponer la llave."""
+    aviso = str(datos.get("Note") or datos.get("Information") or "").lower()
+    prefijo = f"Alpha Vantage rechazó {funcion}"
+    if "demo" in aviso and "api key" in aviso:
+        return f"{prefijo}: la llave configurada es DEMO, no una llave personal"
+    if "25" in aviso and ("request" in aviso or "solicitud" in aviso):
+        return f"{prefijo}: cuota diaria de 25 solicitudes agotada"
+    if "rate limit" in aviso or "frequency" in aviso or "frecuencia" in aviso:
+        return f"{prefijo}: límite temporal de frecuencia alcanzado"
+    if "premium" in aviso or "subscribe" in aviso or "suscri" in aviso:
+        return f"{prefijo}: la respuesta solicita una suscripción o permiso adicional"
+    if "api key" in aviso or "apikey" in aviso:
+        return f"{prefijo}: llave inválida, inactiva o no reconocida"
+    return f"{prefijo}: motivo no identificado por la respuesta segura"
+
+
 def _consultar_alpha(funcion, ticker):
     """Consulta una función permitida sin exponer la llave en mensajes o evidencias."""
     if funcion not in {"GLOBAL_QUOTE", "TIME_SERIES_WEEKLY_ADJUSTED"}:
@@ -155,10 +172,8 @@ def _consultar_alpha(funcion, ticker):
         raise DatosExternosError("Alpha Vantage no respondió con datos válidos") from error
     if not isinstance(datos, dict):
         raise DatosExternosError("respuesta inesperada de Alpha Vantage")
-    if datos.get("Note"):
-        raise DatosExternosError("límite temporal de Alpha Vantage alcanzado")
-    if datos.get("Information"):
-        raise DatosExternosError("Alpha Vantage rechazó la consulta o agotó la cuota")
+    if datos.get("Note") or datos.get("Information"):
+        raise DatosExternosError(_clasificar_rechazo_alpha(datos, funcion))
     if datos.get("Error Message"):
         raise DatosExternosError(f"Alpha Vantage no reconoce el ticker {ticker}")
     return datos

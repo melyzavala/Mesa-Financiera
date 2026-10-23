@@ -162,6 +162,18 @@ def test_alpha_permite_solo_las_dos_funciones_previstas():
         agentes._consultar_alpha("OVERVIEW", "AAPL")
 
 
+@pytest.mark.parametrize(("respuesta", "esperado"), [
+    ({"Information": "The demo API key is for demo purposes only"}, "llave configurada es DEMO"),
+    ({"Information": "standard API rate limit is 25 requests per day"}, "cuota diaria"),
+    ({"Note": "API call frequency exceeded"}, "límite temporal"),
+    ({"Information": "Please subscribe to premium"}, "suscripción"),
+    ({"Information": "Invalid API key"}, "llave inválida"),
+])
+def test_alpha_clasifica_rechazo_sin_exponer_respuesta(respuesta, esperado):
+    mensaje = agentes._clasificar_rechazo_alpha(respuesta, "GLOBAL_QUOTE")
+    assert esperado in mensaje and "GLOBAL_QUOTE" in mensaje
+
+
 def test_respuesta_alpha_se_convierte_sin_usar_openai(monkeypatch):
     monkeypatch.setattr(config, "MODO_SIMULACION", False)
     semanal = {}
