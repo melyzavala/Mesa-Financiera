@@ -80,7 +80,7 @@ y los máximos y mínimos semanales se convierten con el mismo factor de ajuste.
 Los datos se validan antes de llamar a OpenAI. Si Alpha Vantage falla o agota su cuota, la
 ejecución informa el problema y se detiene: nunca reemplaza una consulta real por simulación.
 Euler y Vera reciben sólo la ficha compacta y los indicadores calculados para reducir tokens.
-Por defecto usan `gpt-5.5` sin razonamiento adicional. Vera devuelve únicamente el hallazgo
+Por defecto usan `gpt-5.4-mini` sin razonamiento adicional. Vera devuelve únicamente el hallazgo
 y la pregunta en JSON; Python controla la plantilla final, los espacios, las cifras, el redondeo,
 la fuente y el descargo para que la presentación no dependa del formato generado por el modelo.
 En modo clase, Telegram muestra únicamente la primera y la última observación de cada serie;
